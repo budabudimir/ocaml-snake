@@ -15,13 +15,12 @@ type configuration = {
    speed : float;
 };;
 
-
 let get_value def = function
    | Some x -> x 
    | None   -> def
 ;;
 
-let new_conf conf ?dir ?status ?fruit ?snake_blocks ?speed = {
+let new_conf ?dir ?status ?fruit ?snake_blocks ?speed conf = {
    n = conf.n;
    m = conf.m;
    direction    = get_value conf.direction    dir;
@@ -52,12 +51,13 @@ let change_dir dir chr =
 
 let start_game conf evnt = 
    let dir, chn = change_dir conf.direction evnt.key in
-   new_conf conf 
+   new_conf ~dir:dir ~status:Playing conf
+;;
 
 let make_move conf evnt = 
    match conf.status with 
    | Dead     -> None
-   | Starting -> start_game conf evnt
-   | Playing  -> clock_game conf evnt
+   | Starting -> Some (start_game conf evnt)
+   | Playing  -> None 
 ;;
 
