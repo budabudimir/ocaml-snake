@@ -21,26 +21,43 @@ let drect x y clr =
    fill_rect (abspos_x x) (abspos_y y) block_size_x block_size_y;;
 
 let draw conf = 
-   let rec draw_snake = function 
-      | [] -> ()
-      | (x,y)::t -> 
-            drect x y black;
-            draw_snake t
-   in draw_snake conf.snake_blocks;
-
-   let draw_fruit = function
-      | Some (x, y) -> drect x y red 
-      | None -> ()
-   in draw_fruit conf.fruit
+   let draw_list clr l =
+      List.iter (fun (x, y) -> drect x y clr) l
+   in
+   let draw_elem = function 
+      | Body l -> draw_list black l
+      | Fruit (Some (x, y)) -> draw_list red [(x, y)]
+      | Wall l -> draw_list green l
+      | _ -> ()
+   in List.iter (draw_elem) conf.elems
 ;;
 
-let rec game_loop = function
+let get_dir = function
+   | Left -> "Left"
+   | Right -> "Right"
+   | Up -> "Up"
+   | Down -> "Down"
+;;
+
+let valid x = List.mem x ['k';'l';'i';'j'];;
+
+let find_next () =
+   let last = ref '\000' in
+   while key_pressed () && not (valid !last) do 
+      let k = read_key () in
+      last := if valid k then k else !last;
+   done;
+   !last
+;;
+
+let rec game_loop old = function
    | None -> 0
    | Some conf ->
       draw conf;
+      print_endline (get_dir conf.dir);
       delay conf.speed;
-      let nxt = make_move conf (wait_next_event [Poll]) in
-      game_loop nxt
+      let nxt = make_move conf (find_next ()) in
+      game_loop old nxt 
 ;;
 
 
@@ -50,7 +67,7 @@ let main () =
    let n = window_width / block_size_x in
    let m = window_height / block_size_y in 
 
-   game_loop (init n m)
+   game_loop None (init n m)
 ;;
 
 main ();;

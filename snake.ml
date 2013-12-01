@@ -3,16 +3,20 @@ open Graphics
 
 type point = int * int;;
 type game_status = Playing | Dead | Starting;;
-type block_type = Wall | Body | Fruit;;
-type direction_type = Left | Right | Up | Down;;
+type dir_type = Left | Right | Up | Down;;
+
+type game_elem = 
+   | Body  of point list 
+   | Fruit of point option 
+   | Wall  of point list;;
 
 type configuration = {
-   n : int; m : int; (* height and width *)
-   direction : direction_type; 
+   n      : int; 
+   m      : int; (* height and width *)
+   dir    : dir_type; 
    status : game_status;
-   fruit : point option;
-   snake_blocks : point list;
-   speed : float;
+   elems  : game_elem list;
+   speed  : float;
 };;
 
 let get_value def = function
@@ -20,25 +24,34 @@ let get_value def = function
    | None   -> def
 ;;
 
-let new_conf ?dir ?status ?fruit ?snake_blocks ?speed conf = {
-   n = conf.n;
-   m = conf.m;
-   direction    = get_value conf.direction    dir;
-   status       = get_value conf.status       status;
-   fruit        = get_value conf.fruit        fruit;
-   snake_blocks = get_value conf.snake_blocks snake_blocks;
-   speed        = get_value conf.speed        speed;
+let new_conf ?dir ?status ?snake_blocks ?speed ?elems conf = {
+   n       = conf.n;
+   m       = conf.m;
+   dir     = get_value conf.dir    dir;
+   status  = get_value conf.status status;
+   speed   = get_value conf.speed  speed;
+   elems   = get_value conf.elems  elems;
 };;
 
 let init sx sy = Some {
-   n = sy; 
-   m = sy;
-   direction = Up; 
+   n      = sy; 
+   m      = sy;
+   dir    = Up; 
    status = Starting;
-   fruit = None;
-   snake_blocks = [(sx / 2, sy / 2)];
-   speed = 0.5;
+   speed  = 0.3;
+   elems  = [ Body [(sx / 2, sy / 2)]; Fruit None; Wall [] ];
 };;
+
+let move_point (x, y) = function 
+   | Left  -> x - 1, y
+   | Right -> x + 1, y
+   | Up    -> x    , y + 1
+   | Down  -> x    , y - 1
+;;
+
+let move body dir = 
+   (move_point (List.hd body) dir) :: body
+;;
 
 let change_dir dir chr =
    match dir, chr with
@@ -49,15 +62,39 @@ let change_dir dir chr =
    | x,  _                    -> (x,     0)
 ;;
 
-let start_game conf evnt = 
-   let dir, chn = change_dir conf.direction evnt.key in
+let is_dead body wall n m =
+   let inwall a   = List.mem a wall in
+   let out (x, y) = x < 0 || x >= n || y < 0 || y >= m in
+
+   let hit_wall = List.exists inwall body in
+   let map_out  = List.exists out body in
+
+   let rec hit_itself = function 
+      | [] -> false
+      | h::t -> (List.mem h t) || hit_itself t
+   in
+
+   map_out || hit_wall || hit_itself body
+;;
+
+let start_game conf key = 
+   let dir, chn = change_dir conf.dir key in
    new_conf ~dir:dir ~status:Playing conf
 ;;
 
-let make_move conf evnt = 
+let clock_game conf key = 
+   let dir, _ = change_dir conf.dir key in
+   let [Body body; fruit; Wall wall] = conf.elems in
+   let nbody = move body dir in
+   let status = if (is_dead body wall conf.n conf.m) then Dead else Playing in
+   let elems  = [Body nbody; fruit; Wall wall] in
+   new_conf ~dir:dir ~elems:elems ~status:status conf
+;;
+
+let make_move conf key = 
    match conf.status with 
    | Dead     -> None
-   | Starting -> Some (start_game conf evnt)
-   | Playing  -> None 
+   | Starting -> Some (start_game conf key)
+   | Playing  -> Some (clock_game conf key) 
 ;;
 
