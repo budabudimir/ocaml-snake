@@ -9,6 +9,12 @@ let rec drop_last = function
    | h::t -> h :: drop_last t
 ;;
 
+let rec take_last = function 
+   | []   -> None
+   | [l]  -> Some l
+   | h::t -> take_last t
+;;
+
 let get_value def = function 
    | Some x -> x
    | None   -> def
