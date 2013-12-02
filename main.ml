@@ -1,8 +1,8 @@
 
-open Thread
 open Graphics
 open Printf
 open Snake
+open Util
 
 let window_width  = 650;;
 let window_height = 450;;
@@ -39,7 +39,7 @@ let get_dir = function
    | Down -> "Down"
 ;;
 
-let valid x = List.mem x ['k';'l';'i';'j'];;
+let valid x = List.mem x ['k'; 'l'; 'i'; 'j'];;
 
 let find_next () =
    let last = ref '\000' in
@@ -54,12 +54,10 @@ let rec game_loop old = function
    | None -> 0
    | Some conf ->
       draw conf;
-      print_endline (get_dir conf.dir);
       delay conf.speed;
       let nxt = make_move conf (find_next ()) in
       game_loop old nxt 
 ;;
-
 
 let main () =
    open_graph (sprintf " %d %d" window_width window_height);

@@ -1,5 +1,6 @@
 
 open Graphics
+open Util
 
 type point = int * int;;
 type game_status = Playing | Dead | Starting;;
@@ -18,11 +19,6 @@ type configuration = {
    elems  : game_elem list;
    speed  : float;
 };;
-
-let get_value def = function
-   | Some x -> x 
-   | None   -> def
-;;
 
 let new_conf ?dir ?status ?snake_blocks ?speed ?elems conf = {
    n       = conf.n;
