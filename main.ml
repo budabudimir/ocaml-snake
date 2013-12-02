@@ -14,25 +14,29 @@ let abspos_y y = y * block_size_y;;
 
 let drect x y clr =
    set_color clr;
-   fill_rect (abspos_x x) (abspos_y y) block_size_x block_size_y;;
+   fill_rect (abspos_x x) (abspos_y y) block_size_x block_size_y
+;;
+
+let body_color  = black;;
+let fruit_color = red;;
+let wall_color  = green;;
 
 let draw conf = 
    let draw_list clr l =
       List.iter (fun (x, y) -> drect x y clr) l
    in
    let draw_elem = function 
-      | Body l -> draw_list black l
-      | Fruit (Some (x, y)) -> draw_list red [(x, y)]
-      | Wall l -> draw_list green l
-      | _ -> ()
+      | Body  l -> draw_list black l
+      | Fruit l -> draw_list red   l 
+      | Wall  l -> draw_list green l
    in List.iter (draw_elem) conf.elems
 ;;
 
 let get_dir = function
-   | Left -> "Left"
+   | Left  -> "Left"
    | Right -> "Right"
-   | Up -> "Up"
-   | Down -> "Down"
+   | Up    -> "Up"
+   | Down  -> "Down"
 ;;
 
 let valid x = List.mem x ['k'; 'l'; 'i'; 'j'];;
@@ -46,13 +50,28 @@ let find_next () =
    !last
 ;;
 
+let del_elem (xs, ys) =
+   let f lc lp = List.iter (fun (x, y) -> drect x y background) (diff lp lc) in
+   match xs, ys with
+   | Body  lc, Body  lp -> f lc lp
+   | Fruit lc, Fruit lp -> f lc lp
+   | Wall  lc, Wall  lp -> f lc lp
+   | _, _               -> ()
+;; 
+
+let delete curr = function
+   | Some prev -> List.iter (del_elem) (List.combine curr.elems prev.elems)
+   | None      -> ()
+;;
+
 let rec game_loop old = function
    | None -> ()
    | Some conf when conf.status <> Dead ->
       draw conf;
+      delete conf old;
       delay conf.speed;
       let nxt = make_move conf (find_next ()) in
-      game_loop old nxt 
+      game_loop (Some conf) nxt 
    | Some _ -> ()
 ;;
 
@@ -68,4 +87,4 @@ let main () =
 ;;
 
 main ();;
-read_key ();;
+read_key ()

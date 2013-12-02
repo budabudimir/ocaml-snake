@@ -7,7 +7,7 @@ type dir_type = Left | Right | Up | Down;;
 
 type game_elem = 
    | Body  of point list 
-   | Fruit of point option 
+   | Fruit of point list 
    | Wall  of point list;;
 
 type configuration = {
@@ -34,7 +34,7 @@ let init sx sy = Some {
    dir    = Up; 
    status = Starting;
    speed  = 0.3;
-   elems  = [ Body [(sx / 2, sy / 2)]; Fruit None; Wall [] ];
+   elems  = [ Body [(sx / 2, sy / 2)]; Fruit []; Wall [] ];
 };;
 
 let move_point (x, y) = function 
@@ -80,7 +80,7 @@ let start_game conf key =
 let clock_game conf key = 
    let dir, _ = change_dir conf.dir key in
    let [Body body; fruit; Wall wall] = conf.elems in
-   let nbody = move body dir in
+   let nbody = drop_last (move body dir) in
    let status = if (is_dead body wall conf.n conf.m) then Dead else Playing in
    let elems  = [Body nbody; fruit; Wall wall] in
    new_conf ~dir:dir ~elems:elems ~status:status conf

@@ -19,3 +19,8 @@ let get_value def = function
    | Some x -> x
    | None   -> def
 ;;
+
+let diff x y =
+   let p e = not (List.mem e y) in
+   List.filter p x
+;;
