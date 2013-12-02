@@ -47,13 +47,13 @@ let find_next () =
 ;;
 
 let rec game_loop old = function
-   | None -> 0
+   | None -> ()
    | Some conf when conf.status <> Dead ->
       draw conf;
       delay conf.speed;
       let nxt = make_move conf (find_next ()) in
       game_loop old nxt 
-   | Some _ -> 0
+   | Some _ -> ()
 ;;
 
 let main () =

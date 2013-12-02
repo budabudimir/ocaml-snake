@@ -1,5 +1,4 @@
 
-open Graphics
 open Util
 
 type point = int * int;;
