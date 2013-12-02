@@ -62,7 +62,9 @@ let main () =
    let n = window_width / block_size_x in
    let m = window_height / block_size_y in 
 
-   game_loop None (init n m)
+   game_loop None (init n m);
+
+   close_graph ();
 ;;
 
 main ();;
