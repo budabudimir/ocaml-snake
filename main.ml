@@ -12,10 +12,6 @@ let block_size_y  = 10;;
 let abspos_x x = x * block_size_x;;
 let abspos_y y = y * block_size_y;;
 
-let delay sec = 
-   let span = Sys.time () +. sec in
-   while Sys.time () < span do () done;;
-
 let drect x y clr =
    set_color clr;
    fill_rect (abspos_x x) (abspos_y y) block_size_x block_size_y;;
