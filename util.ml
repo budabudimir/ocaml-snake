@@ -15,6 +15,14 @@ let rec take_last = function
    | h::t -> take_last t
 ;;
 
+(* add e to the last position in list l *)
+let (:/) e l =
+   let rec f = function
+      | [] -> [e]
+      | h::t -> h :: f t
+   in f l
+;;
+
 let get_value def = function 
    | Some x -> x
    | None   -> def
