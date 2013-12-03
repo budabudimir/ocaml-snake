@@ -1,5 +1,6 @@
 
 open Util
+open Printf
 
 type point       = int * int;;
 type game_status = Playing | Dead | Starting;;
@@ -76,6 +77,16 @@ let is_dead body wall conf =
    map_out || hit_wall || hit_itself body
 ;;
 
+let gen_fruit conf = 
+   (Random.int conf.n, Random.int conf.m)
+;;
+
+let eaten fruit body conf =
+   let nf = diff fruit [List.hd body] in
+   let et = List.mem (List.hd body) fruit in
+   (et, if et || (List.length nf = 0) then (gen_fruit conf) :: nf else nf)
+;;
+
 let start_game conf ndir = 
    let dir = change_dir conf.dir ndir in
    new_conf ~dir:dir ~status:Playing conf
@@ -83,10 +94,13 @@ let start_game conf ndir =
 
 let clock_game conf key = 
    let dir = change_dir conf.dir key in
-   let [ Body body; fruit; Wall wall ] = conf.elems in
-   let nbody = drop_last (move body dir) in
+   let [ Body body; Fruit fruit; Wall wall ] = conf.elems in
+   let nbody, nfruit = 
+      match eaten fruit body conf with 
+      | true,  f -> (move body dir, f)
+      | false, f -> (drop_last (move body dir), f) in
    let status = if is_dead body wall conf then Dead else Playing in
-   let elems  = [ Body nbody; fruit; Wall wall ] in
+   let elems  = [ Body nbody; Fruit nfruit; Wall wall ] in
    new_conf ~dir:dir ~elems:elems ~status:status conf
 ;;
 

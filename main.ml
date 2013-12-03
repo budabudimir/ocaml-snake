@@ -29,7 +29,7 @@ let draw conf =
       | Body  l -> draw_list body_color  l
       | Fruit l -> draw_list fruit_color l 
       | Wall  l -> draw_list wall_color  l
-   in List.iter (draw_elem) conf.elems
+   in List.iter (draw_elem) (List.rev conf.elems)
 ;;
 
 let string_of_dir = function
