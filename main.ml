@@ -32,7 +32,7 @@ let draw conf =
    in List.iter (draw_elem) conf.elems
 ;;
 
-let get_dir = function
+let string_of_dir = function
    | Left  -> "Left"
    | Right -> "Right"
    | Up    -> "Up"
