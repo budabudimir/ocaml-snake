@@ -35,7 +35,7 @@ let init sx sy = Some {
    m      = sy;
    dir    = Undef; 
    status = Starting;
-   speed  = 0.3;
+   speed  = 0.25;
    elems  = [ Body [(sx / 2, sy / 2)]; Fruit []; Wall [] ];
 };;
 
@@ -95,13 +95,13 @@ let start_game conf ndir =
 let clock_game conf key = 
    let dir = change_dir conf.dir key in
    let [ Body body; Fruit fruit; Wall wall ] = conf.elems in
-   let nbody, nfruit = 
+   let nbody, nfruit, speed = 
       match eaten fruit body conf with 
-      | true,  f -> (move body dir, f)
-      | false, f -> (drop_last (move body dir), f) in
+      | true,  f -> (move body dir, f, conf.speed -. 0.025)
+      | false, f -> (drop_last (move body dir), f, conf.speed) in
    let status = if is_dead body wall conf then Dead else Playing in
    let elems  = [ Body nbody; Fruit nfruit; Wall wall ] in
-   new_conf ~dir:dir ~elems:elems ~status:status conf
+   new_conf ~dir:dir ~elems:elems ~speed:speed ~status:status conf
 ;;
 
 let make_move conf ndir = 
