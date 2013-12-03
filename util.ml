@@ -16,7 +16,7 @@ let rec take_last = function
 ;;
 
 (* add e to the last position in list l *)
-let (:/) e l =
+let (/:) e l =
    let rec f = function
       | [] -> [e]
       | h::t -> h :: f t

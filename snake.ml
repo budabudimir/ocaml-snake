@@ -1,14 +1,15 @@
 
 open Util
 
-type point = int * int;;
+type point       = int * int;;
 type game_status = Playing | Dead | Starting;;
-type dir_type = Left | Right | Up | Down;;
+type dir_type    = Left | Right | Up | Down | Undef;;
 
 type game_elem = 
    | Body  of point list 
    | Fruit of point list 
-   | Wall  of point list;;
+   | Wall  of point list
+;;
 
 type configuration = {
    n      : int; 
@@ -29,9 +30,9 @@ let new_conf ?dir ?status ?snake_blocks ?speed ?elems conf = {
 };;
 
 let init sx sy = Some {
-   n      = sy; 
+   n      = sx; 
    m      = sy;
-   dir    = Up; 
+   dir    = Undef; 
    status = Starting;
    speed  = 0.3;
    elems  = [ Body [(sx / 2, sy / 2)]; Fruit []; Wall [] ];
@@ -42,22 +43,25 @@ let move_point (x, y) = function
    | Right -> x + 1, y
    | Up    -> x    , y + 1
    | Down  -> x    , y - 1
+   | Undef -> x    , y
 ;;
 
 let move body dir = 
    (move_point (List.hd body) dir) :: body
 ;;
 
-let change_dir dir chr =
-   match dir, chr with
-   | x, 'l' when (x <> Left ) -> (Right, 1)
-   | x, 'j' when (x <> Right) -> (Left,  1)
-   | x, 'i' when (x <> Down ) -> (Up,    1)
-   | x, 'k' when (x <> Up   ) -> (Down,  1)
-   | x,  _                    -> (x,     0)
+let change_dir dir ndir =
+   match dir, ndir with
+   | x, Right when (x <> Left ) -> Right
+   | x, Left  when (x <> Right) -> Left
+   | x, Up    when (x <> Down ) -> Up
+   | x, Down  when (x <> Up   ) -> Down
+   | x, _                       -> x 
 ;;
 
-let is_dead body wall n m =
+let is_dead body wall conf =
+   let n = conf.n in
+   let m = conf.m in
    let inwall a   = List.mem a wall in
    let out (x, y) = x < 0 || x >= n || y < 0 || y >= m in
 
@@ -72,24 +76,24 @@ let is_dead body wall n m =
    map_out || hit_wall || hit_itself body
 ;;
 
-let start_game conf key = 
-   let dir, chn = change_dir conf.dir key in
+let start_game conf ndir = 
+   let dir = change_dir conf.dir ndir in
    new_conf ~dir:dir ~status:Playing conf
 ;;
 
 let clock_game conf key = 
-   let dir, _ = change_dir conf.dir key in
-   let [Body body; fruit; Wall wall] = conf.elems in
+   let dir = change_dir conf.dir key in
+   let [ Body body; fruit; Wall wall ] = conf.elems in
    let nbody = drop_last (move body dir) in
-   let status = if (is_dead body wall conf.n conf.m) then Dead else Playing in
-   let elems  = [Body nbody; fruit; Wall wall] in
+   let status = if is_dead body wall conf then Dead else Playing in
+   let elems  = [ Body nbody; fruit; Wall wall ] in
    new_conf ~dir:dir ~elems:elems ~status:status conf
 ;;
 
-let make_move conf key = 
+let make_move conf ndir = 
    match conf.status with 
    | Dead     -> None
-   | Starting -> Some (start_game conf key)
-   | Playing  -> Some (clock_game conf key) 
+   | Starting -> Some (start_game conf ndir)
+   | Playing  -> Some (clock_game conf ndir) 
 ;;
 

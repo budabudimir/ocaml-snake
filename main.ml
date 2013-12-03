@@ -26,9 +26,9 @@ let draw conf =
       List.iter (fun (x, y) -> drect x y clr) l
    in
    let draw_elem = function 
-      | Body  l -> draw_list black l
-      | Fruit l -> draw_list red   l 
-      | Wall  l -> draw_list green l
+      | Body  l -> draw_list body_color  l
+      | Fruit l -> draw_list fruit_color l 
+      | Wall  l -> draw_list wall_color  l
    in List.iter (draw_elem) conf.elems
 ;;
 
@@ -37,6 +37,7 @@ let get_dir = function
    | Right -> "Right"
    | Up    -> "Up"
    | Down  -> "Down"
+   | Undef -> "Undef"
 ;;
 
 let valid x = List.mem x ['k'; 'l'; 'i'; 'j'];;
@@ -64,13 +65,21 @@ let delete curr = function
    | None      -> ()
 ;;
 
+let get_dir = function
+   | 'l' -> Right
+   | 'i' -> Up
+   | 'j' -> Left
+   | 'k' -> Down
+   |  _  -> Undef
+;;
+
 let rec game_loop old = function
    | None -> ()
    | Some conf when conf.status <> Dead ->
       draw conf;
       delete conf old;
       delay conf.speed;
-      let nxt = make_move conf (find_next ()) in
+      let nxt = make_move conf (get_dir (find_next ())) in
       game_loop (Some conf) nxt 
    | Some _ -> ()
 ;;
@@ -78,13 +87,12 @@ let rec game_loop old = function
 let main () =
    open_graph (sprintf " %d %d" window_width window_height);
 
-   let n = window_width / block_size_x in
+   let n = window_width  / block_size_x in
    let m = window_height / block_size_y in 
 
    game_loop None (init n m);
-
-   close_graph ();
 ;;
 
 main ();;
 read_key ()
+
